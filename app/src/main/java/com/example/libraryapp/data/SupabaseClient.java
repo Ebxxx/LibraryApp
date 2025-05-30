@@ -2,6 +2,7 @@ package com.example.libraryapp.data;
 
 import com.example.libraryapp.core.config.SupabaseConfig;
 import com.example.libraryapp.models.User;
+import com.example.libraryapp.utils.PasswordUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -17,6 +18,7 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class SupabaseClient {
     private static SupabaseClient instance;
@@ -48,8 +50,8 @@ public class SupabaseClient {
     public CompletableFuture<User> loginUser(String username, String password) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                // Query the users table to find user by username and password
-                String url = SupabaseConfig.getUrl() + "/rest/v1/users?username=eq." + username + "&password=eq." + password + "&select=*";
+                // First get the user by username only
+                String url = SupabaseConfig.getUrl() + "/rest/v1/users?username=eq." + username + "&select=*";
                 
                 Request request = new Request.Builder()
                     .url(url)
@@ -74,6 +76,11 @@ public class SupabaseClient {
                     }
 
                     User user = users.get(0);
+                    
+                    // Verify the password using our improved PasswordUtils
+                    if (!PasswordUtils.verifyPassword(password, user.getPassword())) {
+                        throw new RuntimeException("Login failed: Invalid username or password");
+                    }
 
                     // Validate user role
                     if (!user.isValidRole()) {
