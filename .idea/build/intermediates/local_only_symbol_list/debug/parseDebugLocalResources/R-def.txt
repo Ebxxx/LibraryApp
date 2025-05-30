@@ -1,0 +1,26 @@
+R_DEF: Internal format may change without notice
+local
+color black
+color ic_launcher_background
+color white
+drawable ic_launcher_background
+drawable ic_launcher_foreground
+drawable ic_library
+drawable ic_lock
+drawable ic_person
+id forgot_password
+id login_button
+id main
+id password_edit_text
+id password_layout
+id username_edit_text
+id username_layout
+layout activity_login
+layout activity_main
+mipmap ic_launcher
+mipmap ic_launcher_round
+string app_name
+style Base.Theme.LibraryApp
+style Theme.LibraryApp
+xml backup_rules
+xml data_extraction_rules

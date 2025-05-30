@@ -3,10 +3,11 @@ package com.example.libraryapp;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import com.example.libraryapp.data.SupabaseClient;
+import com.example.libraryapp.models.User;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.android.material.button.MaterialButton;
 
@@ -16,11 +17,15 @@ public class LoginActivity extends AppCompatActivity {
     private EditText usernameEditText;
     private EditText passwordEditText;
     private MaterialButton loginButton;
+    private SupabaseClient supabaseClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        // Initialize database client
+        supabaseClient = SupabaseClient.getInstance();
 
         // Initialize views
         usernameLayout = findViewById(R.id.username_layout);
@@ -36,16 +41,34 @@ public class LoginActivity extends AppCompatActivity {
                 String password = passwordEditText.getText().toString().trim();
 
                 if (validateInput(username, password)) {
-                    // TODO: Add your actual authentication logic here
-                    
-                    // For now, consider login successful and navigate to MainActivity
-                    Toast.makeText(LoginActivity.this, "Login Successful!", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                    startActivity(intent);
-                    finish(); // This prevents going back to login screen when pressing back
+                    loginButton.setEnabled(false); // Disable button during login
+                    attemptLogin(username, password);
                 }
             }
         });
+    }
+
+    private void attemptLogin(String username, String password) {
+        supabaseClient.loginUser(username, password)
+            .thenAccept(user -> {
+                runOnUiThread(() -> {
+                    Toast.makeText(LoginActivity.this, 
+                        "Welcome, " + user.getFirstName() + "!", 
+                        Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                    startActivity(intent);
+                    finish();
+                });
+            })
+            .exceptionally(throwable -> {
+                runOnUiThread(() -> {
+                    loginButton.setEnabled(true);
+                    Toast.makeText(LoginActivity.this, 
+                        "Login failed: " + throwable.getMessage(), 
+                        Toast.LENGTH_LONG).show();
+                });
+                return null;
+            });
     }
 
     private boolean validateInput(String username, String password) {
