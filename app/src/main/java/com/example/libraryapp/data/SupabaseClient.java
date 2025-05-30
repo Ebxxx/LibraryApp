@@ -1,7 +1,9 @@
 package com.example.libraryapp.data;
 
+import android.content.Context;
 import com.example.libraryapp.core.config.SupabaseConfig;
 import com.example.libraryapp.models.User;
+import com.example.libraryapp.models.LibraryResource;
 import com.example.libraryapp.utils.PasswordUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -25,8 +27,10 @@ public class SupabaseClient {
     private final OkHttpClient client;
     private final Gson gson;
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
+    private final String supabaseUrl;
+    private final String supabaseKey;
 
-    private SupabaseClient() {
+    private SupabaseClient(Context context) {
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
         logging.setLevel(HttpLoggingInterceptor.Level.BODY);
         
@@ -38,11 +42,13 @@ public class SupabaseClient {
             .build();
         
         gson = new Gson();
+        this.supabaseUrl = "YOUR_SUPABASE_URL";
+        this.supabaseKey = "YOUR_SUPABASE_KEY";
     }
 
-    public static synchronized SupabaseClient getInstance() {
+    public static synchronized SupabaseClient getInstance(Context context) {
         if (instance == null) {
-            instance = new SupabaseClient();
+            instance = new SupabaseClient(context.getApplicationContext());
         }
         return instance;
     }
@@ -247,6 +253,102 @@ public class SupabaseClient {
                     if (!response.isSuccessful()) {
                         throw new RuntimeException("Failed to delete user: HTTP " + response.code() + " - " + response.message());
                     }
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Network error: " + e.getMessage(), e);
+            } catch (Exception e) {
+                throw new RuntimeException("Error: " + e.getMessage(), e);
+            }
+        });
+    }
+
+    public CompletableFuture<List<LibraryResource>> getAllLibraryResources() {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                String url = SupabaseConfig.getUrl() + "/rest/v1/library_resources?select=*";
+                
+                Request request = new Request.Builder()
+                    .url(url)
+                    .addHeader("apikey", SupabaseConfig.getAnonKey())
+                    .addHeader("Authorization", "Bearer " + SupabaseConfig.getAnonKey())
+                    .addHeader("Content-Type", "application/json")
+                    .get()
+                    .build();
+
+                try (Response response = client.newCall(request).execute()) {
+                    if (!response.isSuccessful()) {
+                        throw new RuntimeException("Failed to get resources: HTTP " + response.code() + " - " + response.message());
+                    }
+
+                    String responseBody = response.body().string();
+                    Type listType = new TypeToken<List<LibraryResource>>(){}.getType();
+                    return gson.fromJson(responseBody, listType);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Network error: " + e.getMessage(), e);
+            } catch (Exception e) {
+                throw new RuntimeException("Error: " + e.getMessage(), e);
+            }
+        });
+    }
+
+    public CompletableFuture<LibraryResource> getLibraryResourceById(int resourceId) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                String url = SupabaseConfig.getUrl() + "/rest/v1/library_resources?resource_id=eq." + resourceId + "&select=*";
+                
+                Request request = new Request.Builder()
+                    .url(url)
+                    .addHeader("apikey", SupabaseConfig.getAnonKey())
+                    .addHeader("Authorization", "Bearer " + SupabaseConfig.getAnonKey())
+                    .addHeader("Content-Type", "application/json")
+                    .get()
+                    .build();
+
+                try (Response response = client.newCall(request).execute()) {
+                    if (!response.isSuccessful()) {
+                        throw new RuntimeException("Failed to get resource: HTTP " + response.code() + " - " + response.message());
+                    }
+
+                    String responseBody = response.body().string();
+                    Type listType = new TypeToken<List<LibraryResource>>(){}.getType();
+                    List<LibraryResource> resources = gson.fromJson(responseBody, listType);
+
+                    if (resources == null || resources.isEmpty()) {
+                        throw new RuntimeException("Resource not found");
+                    }
+
+                    return resources.get(0);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Network error: " + e.getMessage(), e);
+            } catch (Exception e) {
+                throw new RuntimeException("Error: " + e.getMessage(), e);
+            }
+        });
+    }
+
+    public CompletableFuture<List<LibraryResource>> searchLibraryResources(String query) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                String url = SupabaseConfig.getUrl() + "/rest/v1/library_resources?title=ilike.*" + query + "*&select=*";
+                
+                Request request = new Request.Builder()
+                    .url(url)
+                    .addHeader("apikey", SupabaseConfig.getAnonKey())
+                    .addHeader("Authorization", "Bearer " + SupabaseConfig.getAnonKey())
+                    .addHeader("Content-Type", "application/json")
+                    .get()
+                    .build();
+
+                try (Response response = client.newCall(request).execute()) {
+                    if (!response.isSuccessful()) {
+                        throw new RuntimeException("Search failed: HTTP " + response.code() + " - " + response.message());
+                    }
+
+                    String responseBody = response.body().string();
+                    Type listType = new TypeToken<List<LibraryResource>>(){}.getType();
+                    return gson.fromJson(responseBody, listType);
                 }
             } catch (IOException e) {
                 throw new RuntimeException("Network error: " + e.getMessage(), e);

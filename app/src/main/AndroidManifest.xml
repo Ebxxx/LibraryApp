@@ -28,6 +28,14 @@
             android:name=".activity.MainActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".activity.LibraryDashboardActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activity.BorrowingHistoryActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

@@ -26,7 +26,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         // Initialize database client
-        supabaseClient = SupabaseClient.getInstance();
+        supabaseClient = SupabaseClient.getInstance(this);
 
         // Initialize views
         usernameLayout = findViewById(R.id.username_layout);
@@ -56,7 +56,12 @@ public class LoginActivity extends AppCompatActivity {
                     Toast.makeText(LoginActivity.this, 
                         "Welcome, " + user.getFirstName() + "!", 
                         Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                    
+                    // Redirect ALL users to LibraryDashboardActivity
+                    Intent intent = new Intent(LoginActivity.this, LibraryDashboardActivity.class);
+                    intent.putExtra("USER_ID", user.getUserId());
+                    intent.putExtra("USER_NAME", user.getFirstName() + " " + user.getLastName());
+                    intent.putExtra("USER_ROLE", user.getRole());
                     startActivity(intent);
                     finish();
                 });
