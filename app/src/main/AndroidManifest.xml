@@ -36,6 +36,11 @@
             android:name=".activity.BorrowingHistoryActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".activity.BorrowingActivity"
+            android:exported="false"
+            android:parentActivityName=".activity.LibraryDashboardActivity" />
+
     </application>
 
 </manifest>

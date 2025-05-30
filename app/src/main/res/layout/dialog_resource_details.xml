@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Resource Title -->
+        <TextView
+            android:id="@+id/dialogResourceTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Resource Title"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:layout_marginBottom="8dp"
+            android:maxLines="3"
+            android:ellipsize="end"/>
+
+        <!-- Category and Status Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/dialogResourceCategory"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Category"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/holo_blue_dark"
+                android:background="@drawable/category_background"
+                android:padding="4dp"
+                android:gravity="center"/>
+
+            <TextView
+                android:id="@+id/dialogResourceStatus"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="Available"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/holo_green_dark"
+                android:background="@drawable/status_background"
+                android:padding="4dp"
+                android:gravity="center"/>
+
+        </LinearLayout>
+
+        <!-- Accession Number -->
+        <TextView
+            android:id="@+id/dialogResourceAccession"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Accession: ACC001"
+            android:textSize="12sp"
+            android:textColor="@android:color/darker_gray"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Resource Details -->
+        <TextView
+            android:id="@+id/dialogResourceDetails"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Loading details..."
+            android:textSize="14sp"
+            android:textColor="@android:color/black"
+            android:lineSpacingExtra="4dp"
+            android:layout_marginBottom="24dp"
+            android:fontFamily="monospace"/>
+
+        <!-- Request Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/dialogRequestButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Request to Borrow"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:icon="@android:drawable/ic_menu_add"
+            app:iconGravity="start"
+            style="@style/Widget.Material3.Button"/>
+
+    </LinearLayout>
+
+</ScrollView> 

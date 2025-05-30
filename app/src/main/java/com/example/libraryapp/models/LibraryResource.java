@@ -1,16 +1,38 @@
 package com.example.libraryapp.models;
 
+import com.google.gson.annotations.SerializedName;
 import java.util.Date;
 
+/**
+ * Model class representing the library_resources table in the database.
+ * This is the main resource entity that can be a book, periodical, or media.
+ */
 public class LibraryResource {
-    private int resourceId;
-    private String title;
-    private String accessionNumber;
-    private String category;
-    private String status;
-    private Date createdAt;
-    private Date updatedAt;
-    private String coverImage;
+    @SerializedName("resource_id")
+    private int resourceId;        // Primary key
+    
+    @SerializedName("title")
+    private String title;          // NOT NULL
+    
+    @SerializedName("accession_number")
+    private String accessionNumber; // NOT NULL UNIQUE
+    
+    @SerializedName("category")
+    private String category;       // NOT NULL (enum: book, periodical, media)
+    
+    @SerializedName("status")
+    private String status;         // Default: 'borrowed' (enum: resource_status)
+    
+    @SerializedName("created_at")
+    private Date createdAt;        // Default: CURRENT_TIMESTAMP
+    
+    @SerializedName("updated_at")
+    private Date updatedAt;        // Default: CURRENT_TIMESTAMP
+    
+    @SerializedName("cover_image")
+    private String coverImage;     // Optional cover image URL
+    
+    // Related details (populated based on category)
     private BookDetails bookDetails;
     private PeriodicalDetails periodicalDetails;
     private MediaDetails mediaDetails;
@@ -48,4 +70,15 @@ public class LibraryResource {
 
     public MediaDetails getMediaDetails() { return mediaDetails; }
     public void setMediaDetails(MediaDetails mediaDetails) { this.mediaDetails = mediaDetails; }
+    
+    @Override
+    public String toString() {
+        return "LibraryResource{" +
+                "resourceId=" + resourceId +
+                ", title='" + title + '\'' +
+                ", accessionNumber='" + accessionNumber + '\'' +
+                ", category='" + category + '\'' +
+                ", status='" + status + '\'' +
+                '}';
+    }
 } 

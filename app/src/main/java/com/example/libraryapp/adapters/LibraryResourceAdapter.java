@@ -12,6 +12,9 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.libraryapp.R;
 import com.example.libraryapp.models.LibraryResource;
+import com.example.libraryapp.models.BookDetails;
+import com.example.libraryapp.models.PeriodicalDetails;
+import com.example.libraryapp.models.MediaDetails;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,9 +76,91 @@ public class LibraryResourceAdapter extends RecyclerView.Adapter<LibraryResource
         }
 
         void bind(LibraryResource resource) {
+            // Validate resource
+            if (resource == null) {
+                android.util.Log.e("LibraryResourceAdapter", "Resource is null!");
+                return;
+            }
+            
+            if (resource.getCategory() == null || resource.getCategory().isEmpty()) {
+                android.util.Log.e("LibraryResourceAdapter", "Resource category is null or empty for: " + resource.getTitle());
+                return;
+            }
+            
+            String category = resource.getCategory().trim();
+            android.util.Log.d("LibraryResourceAdapter", "Binding resource: " + resource.getTitle() + " with category: '" + category + "'");
+            
             titleText.setText(resource.getTitle());
-            categoryText.setText(resource.getCategory());
             statusText.setText(resource.getStatus());
+
+            // Build category-specific details
+            StringBuilder detailsBuilder = new StringBuilder();
+            detailsBuilder.append(category);
+            
+            // Display specific details based on category
+            if ("book".equals(category)) {
+                if (resource.getBookDetails() != null) {
+                    BookDetails book = resource.getBookDetails();
+                    android.util.Log.d("LibraryResourceAdapter", "Displaying book details for: " + resource.getTitle());
+                    
+                    if (book.getAuthor() != null && !book.getAuthor().isEmpty()) {
+                        detailsBuilder.append(" • ").append(book.getAuthor());
+                    }
+                    if (book.getPublisher() != null && !book.getPublisher().isEmpty()) {
+                        detailsBuilder.append(" • ").append(book.getPublisher());
+                    }
+                    if (book.getEdition() != null && !book.getEdition().isEmpty()) {
+                        detailsBuilder.append(" • ").append(book.getEdition());
+                    }
+                } else {
+                    android.util.Log.d("LibraryResourceAdapter", "Book details not yet loaded for: " + resource.getTitle());
+                    detailsBuilder.append(" • Loading details...");
+                }
+                
+            } else if ("periodical".equals(category)) {
+                if (resource.getPeriodicalDetails() != null) {
+                    PeriodicalDetails periodical = resource.getPeriodicalDetails();
+                    android.util.Log.d("LibraryResourceAdapter", "Displaying periodical details for: " + resource.getTitle());
+                    
+                    if (periodical.getVolume() != null && !periodical.getVolume().isEmpty()) {
+                        detailsBuilder.append(" • Vol. ").append(periodical.getVolume());
+                    }
+                    if (periodical.getIssue() != null && !periodical.getIssue().isEmpty()) {
+                        detailsBuilder.append(" • Issue ").append(periodical.getIssue());
+                    }
+                    if (periodical.getIssn() != null && !periodical.getIssn().isEmpty()) {
+                        detailsBuilder.append(" • ISSN: ").append(periodical.getIssn());
+                    }
+                } else {
+                    android.util.Log.d("LibraryResourceAdapter", "Periodical details not yet loaded for: " + resource.getTitle());
+                    detailsBuilder.append(" • Loading details...");
+                }
+                
+            } else if ("media".equals(category)) {
+                if (resource.getMediaDetails() != null) {
+                    MediaDetails media = resource.getMediaDetails();
+                    android.util.Log.d("LibraryResourceAdapter", "Displaying media details for: " + resource.getTitle());
+                    
+                    if (media.getFormat() != null && !media.getFormat().isEmpty()) {
+                        detailsBuilder.append(" • ").append(media.getFormat());
+                    }
+                    if (media.getMediaType() != null && !media.getMediaType().isEmpty()) {
+                        detailsBuilder.append(" • ").append(media.getMediaType());
+                    }
+                    if (media.getRuntime() != null && media.getRuntime() > 0) {
+                        detailsBuilder.append(" • ").append(media.getRuntime()).append(" min");
+                    }
+                } else {
+                    android.util.Log.d("LibraryResourceAdapter", "Media details not yet loaded for: " + resource.getTitle());
+                    detailsBuilder.append(" • Loading details...");
+                }
+                
+            } else {
+                android.util.Log.e("LibraryResourceAdapter", "Unknown category: '" + category + "' for resource: " + resource.getTitle());
+                detailsBuilder.append(" • Unknown category type");
+            }
+            
+            categoryText.setText(detailsBuilder.toString());
 
             // Load cover image using Glide with error handling
             RequestOptions requestOptions = new RequestOptions()
