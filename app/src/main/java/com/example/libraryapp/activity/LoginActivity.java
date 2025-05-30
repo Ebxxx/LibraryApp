@@ -1,4 +1,4 @@
-package com.example.libraryapp;
+package com.example.libraryapp.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import com.example.libraryapp.R;
 import com.example.libraryapp.data.SupabaseClient;
 import com.example.libraryapp.models.User;
 import com.google.android.material.textfield.TextInputLayout;
