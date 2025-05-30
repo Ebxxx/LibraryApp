@@ -15,6 +15,7 @@ import com.example.libraryapp.R;
 import com.example.libraryapp.adapters.BorrowingHistoryAdapter;
 import com.example.libraryapp.data.SupabaseClient;
 import com.example.libraryapp.models.Borrowing;
+import com.example.libraryapp.models.LibraryResource;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -79,6 +80,8 @@ public class BorrowingHistoryActivity extends AppCompatActivity {
     private void loadBorrowingHistory() {
         showLoading(true);
         
+        android.util.Log.d("BorrowingHistory", "Loading borrowing history for user ID: " + userId);
+        
         CompletableFuture<List<Borrowing>> borrowingsFuture = supabaseClient.getUserBorrowingRequestsWithDetails(userId);
         
         borrowingsFuture.thenAccept(borrowings -> {
@@ -86,23 +89,51 @@ public class BorrowingHistoryActivity extends AppCompatActivity {
                 showLoading(false);
                 
                 if (borrowings != null && !borrowings.isEmpty()) {
+                    android.util.Log.d("BorrowingHistory", "Loaded " + borrowings.size() + " borrowing records");
+                    
+                    // Debug: Log first few records to verify resource details
+                    for (int i = 0; i < Math.min(3, borrowings.size()); i++) {
+                        Borrowing borrowing = borrowings.get(i);
+                        android.util.Log.d("BorrowingHistory", "Borrowing " + i + ": " + borrowing.toString());
+                        
+                        if (borrowing.getResource() != null) {
+                            LibraryResource resource = borrowing.getResource();
+                            android.util.Log.d("BorrowingHistory", "  Resource details: ID=" + resource.getResourceId() + 
+                                ", Title=" + resource.getTitle() + ", Category=" + resource.getCategory() + 
+                                ", Accession=" + resource.getAccessionNumber());
+                            
+                            // Check if category-specific details are loaded
+                            if ("book".equals(resource.getCategory()) && resource.getBookDetails() != null) {
+                                android.util.Log.d("BorrowingHistory", "  Book details: Author=" + resource.getBookDetails().getAuthor());
+                            } else if ("periodical".equals(resource.getCategory()) && resource.getPeriodicalDetails() != null) {
+                                android.util.Log.d("BorrowingHistory", "  Periodical details: Volume=" + resource.getPeriodicalDetails().getVolume());
+                            } else if ("media".equals(resource.getCategory()) && resource.getMediaDetails() != null) {
+                                android.util.Log.d("BorrowingHistory", "  Media details: Format=" + resource.getMediaDetails().getFormat());
+                            } else {
+                                android.util.Log.w("BorrowingHistory", "  Category-specific details not loaded for: " + resource.getCategory());
+                            }
+                        } else {
+                            android.util.Log.w("BorrowingHistory", "  No resource details found for borrowing ID: " + borrowing.getBorrowingId());
+                        }
+                    }
+                    
                     adapter.setBorrowings(borrowings);
                     showEmptyState(false);
-                    
-                    android.util.Log.d("BorrowingHistory", "Loaded " + borrowings.size() + " borrowing records");
                     
                     // Show status summary
                     showStatusSummary(borrowings);
                 } else {
                     showEmptyState(true);
-                    android.util.Log.d("BorrowingHistory", "No borrowing records found");
+                    android.util.Log.d("BorrowingHistory", "No borrowing records found for user ID: " + userId);
                 }
             });
         }).exceptionally(e -> {
             runOnUiThread(() -> {
                 showLoading(false);
-                Toast.makeText(this, "Error loading borrowing history: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                android.util.Log.e("BorrowingHistory", "Error loading borrowing history: " + e.getMessage(), e);
+                String errorMessage = "Error loading borrowing history: " + e.getMessage();
+                Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
+                android.util.Log.e("BorrowingHistory", errorMessage, e);
+                showEmptyState(true);
             });
             return null;
         });

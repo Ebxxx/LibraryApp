@@ -44,8 +44,12 @@ public class Borrowing {
     private Integer returnedBy;     // Foreign key to users table
 
     // Related objects (for joined queries)
+    @SerializedName("users")
     private User user;
+    
+    @SerializedName("library_resources")
     private LibraryResource resource;
+    
     private User approvedByUser;
     private User returnedByUser;
 
@@ -113,7 +117,7 @@ public class Borrowing {
     }
 
     public boolean isApproved() {
-        return "approved".equals(status);
+        return "approved".equals(status) || "active".equals(status);
     }
 
     @Override
@@ -125,6 +129,7 @@ public class Borrowing {
                 ", borrowDate=" + borrowDate +
                 ", dueDate=" + dueDate +
                 ", status='" + status + '\'' +
+                ", resourceTitle='" + (resource != null ? resource.getTitle() : "N/A") + '\'' +
                 '}';
     }
 } 

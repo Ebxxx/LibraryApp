@@ -1449,7 +1449,7 @@ public class SupabaseClient {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 String url = SupabaseConfig.getUrl() + "/rest/v1/borrowings?user_id=eq." + userId + 
-                           "&select=*,library_resources(title,category,accession_number,cover_image)" +
+                           "&select=*,library_resources(*)" +
                            "&order=borrow_date.desc";
                 
                 android.util.Log.d("SupabaseClient", "Fetching detailed borrowing requests for user: " + userId);
@@ -1473,8 +1473,21 @@ public class SupabaseClient {
                     Type listType = new TypeToken<List<Borrowing>>(){}.getType();
                     List<Borrowing> borrowings = borrowingGson.fromJson(responseBody, listType);
                     
-                    if (borrowings != null) {
+                    if (borrowings != null && !borrowings.isEmpty()) {
                         android.util.Log.d("SupabaseClient", "Successfully retrieved " + borrowings.size() + " borrowing requests");
+                        
+                        // Enrich each resource with category-specific details
+                        List<LibraryResource> resources = new ArrayList<>();
+                        for (Borrowing borrowing : borrowings) {
+                            if (borrowing.getResource() != null) {
+                                resources.add(borrowing.getResource());
+                            }
+                        }
+                        
+                        if (!resources.isEmpty()) {
+                            android.util.Log.d("SupabaseClient", "Enriching " + resources.size() + " resources with detailed information");
+                            enrichResourcesWithDetails(resources);
+                        }
                     }
                     
                     return borrowings != null ? borrowings : new ArrayList<>();
