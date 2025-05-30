@@ -235,8 +235,8 @@ public class BorrowingHistoryAdapter extends RecyclerView.Adapter<BorrowingHisto
             } else {
                 returnDateText.setVisibility(View.GONE);
             }
-        }
-        
+            }
+
         private void formatStatus(Borrowing borrowing) {
             String status = borrowing.getStatus() != null ? borrowing.getStatus().toUpperCase() : "UNKNOWN";
             statusText.setText(status);
@@ -283,4 +283,4 @@ public class BorrowingHistoryAdapter extends RecyclerView.Adapter<BorrowingHisto
             return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
         }
     }
-}
+} 

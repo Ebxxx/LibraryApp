@@ -70,7 +70,7 @@ public class LibraryDashboardActivity extends AppCompatActivity implements Libra
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("Welcome, " + userName);
-            getSupportActionBar().setSubtitle(userRole);
+            // getSupportActionBar().setSubtitle(userRole);
         }
 
         // Setup navigation drawer
@@ -481,7 +481,12 @@ public class LibraryDashboardActivity extends AppCompatActivity implements Libra
                     requestButton.setText("Request Pending");
                     requestButton.setEnabled(false);
                     requestButton.setOnClickListener(v -> {
-                        Toast.makeText(this, "You already have a pending request for this resource", Toast.LENGTH_LONG).show();
+                        handleResourceRequest(resource);
+                        // Close dialog after request
+                        AlertDialog dialog = builder.create();
+                        if (dialog.isShowing()) {
+                            dialog.dismiss();
+                        }
                     });
                 } else {
                     // No existing request, allow new request
@@ -648,12 +653,7 @@ public class LibraryDashboardActivity extends AppCompatActivity implements Libra
         pendingCountFuture.thenAccept(count -> {
             runOnUiThread(() -> {
                 if (count > 0) {
-                    // Update toolbar subtitle to show pending requests
-                    String subtitle = userRole + " • " + count + " pending request" + (count == 1 ? "" : "s");
-                    if (getSupportActionBar() != null) {
-                        getSupportActionBar().setSubtitle(subtitle);
-                    }
-                    
+                    // Log pending requests count but don't update toolbar subtitle
                     android.util.Log.d("LibraryDashboard", "User has " + count + " pending borrowing requests");
                 }
             });
