@@ -1,7 +1,6 @@
 package com.example.libraryapp;
 
 import android.os.Bundle;
-
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -21,4 +20,4 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
     }
-}
+} 
