@@ -6,6 +6,7 @@ import java.util.Date;
 /**
  * Model class representing the library_resources table in the database.
  * This is the main resource entity that can be a book, periodical, or media.
+ * Detailed information comes from separate tables (books, periodicals, media_resources).
  */
 public class LibraryResource {
     @SerializedName("resource_id")
@@ -31,8 +32,8 @@ public class LibraryResource {
     
     @SerializedName("cover_image")
     private String coverImage;     // Optional cover image URL
-    
-    // Related details (populated based on category)
+
+    // Related details (populated from separate tables via joins)
     private BookDetails bookDetails;
     private PeriodicalDetails periodicalDetails;
     private MediaDetails mediaDetails;

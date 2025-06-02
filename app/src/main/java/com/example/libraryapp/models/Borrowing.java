@@ -119,17 +119,155 @@ public class Borrowing {
     public boolean isApproved() {
         return "approved".equals(status) || "active".equals(status);
     }
+    
+    // Get formatted resource details for display
+    public String getResourceDisplayTitle() {
+        if (resource != null && resource.getTitle() != null) {
+            return resource.getTitle();
+        }
+        return "Unknown Resource";
+    }
+    
+    public String getResourceDisplayCategory() {
+        if (resource != null && resource.getCategory() != null) {
+            switch (resource.getCategory().toLowerCase()) {
+                case "book": return "📚 Book";
+                case "periodical": return "📰 Periodical";
+                case "media": return "🎬 Media";
+                default: return "📄 " + resource.getCategory();
+            }
+        }
+        return "📄 Unknown";
+    }
+    
+    public String getResourceDisplayDetails() {
+        if (resource == null) return "Resource details not available";
+        
+        StringBuilder details = new StringBuilder();
+        String category = resource.getCategory();
+        
+        if ("book".equals(category) && resource.getBookDetails() != null) {
+            BookDetails book = resource.getBookDetails();
+            if (book.getAuthor() != null && !book.getAuthor().isEmpty()) {
+                details.append("by ").append(book.getAuthor());
+            }
+            if (book.getPublisher() != null && !book.getPublisher().isEmpty()) {
+                if (details.length() > 0) details.append(" • ");
+                details.append(book.getPublisher());
+            }
+            if (book.getEdition() != null && !book.getEdition().isEmpty()) {
+                if (details.length() > 0) details.append(" • ");
+                details.append(book.getEdition());
+            }
+            if (book.getIsbn() != null && !book.getIsbn().isEmpty()) {
+                if (details.length() > 0) details.append(" • ");
+                details.append("ISBN: ").append(book.getIsbn());
+            }
+        } else if ("periodical".equals(category) && resource.getPeriodicalDetails() != null) {
+            PeriodicalDetails periodical = resource.getPeriodicalDetails();
+            if (periodical.getVolume() != null && !periodical.getVolume().isEmpty()) {
+                details.append("Vol. ").append(periodical.getVolume());
+            }
+            if (periodical.getIssue() != null && !periodical.getIssue().isEmpty()) {
+                if (details.length() > 0) details.append(" • ");
+                details.append("Issue ").append(periodical.getIssue());
+            }
+            if (periodical.getIssn() != null && !periodical.getIssn().isEmpty()) {
+                if (details.length() > 0) details.append(" • ");
+                details.append("ISSN: ").append(periodical.getIssn());
+            }
+        } else if ("media".equals(category) && resource.getMediaDetails() != null) {
+            MediaDetails media = resource.getMediaDetails();
+            if (media.getFormat() != null && !media.getFormat().isEmpty()) {
+                details.append(media.getFormat());
+            }
+            if (media.getMediaType() != null && !media.getMediaType().isEmpty()) {
+                if (details.length() > 0) details.append(" • ");
+                details.append(media.getMediaType());
+            }
+            if (media.getRuntime() != null && media.getRuntime() > 0) {
+                if (details.length() > 0) details.append(" • ");
+                details.append(media.getRuntime()).append(" min");
+            }
+        }
+        
+        // Add accession number if available
+        if (resource.getAccessionNumber() != null) {
+            if (details.length() > 0) details.append(" • ");
+            details.append("Acc: ").append(resource.getAccessionNumber());
+        }
+        
+        return details.length() > 0 ? details.toString() : "Details loading from database...";
+    }
+    
+    // Get formatted status with emoji
+    public String getFormattedStatus() {
+        if (status == null) return "❓ Unknown";
+        
+        switch (status.toLowerCase()) {
+            case "pending": return "⏳ Pending";
+            case "approved": return "✅ Approved";
+            case "active": return "📖 Active";
+            case "returned": return "✅ Returned";
+            case "overdue": return "⚠️ Overdue";
+            case "rejected": return "❌ Rejected";
+            default: return "❓ " + status;
+        }
+    }
+    
+    // Get formatted dates
+    public String getFormattedBorrowDate() {
+        if (borrowDate == null) return "Not set";
+        return new java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault())
+            .format(borrowDate);
+    }
+    
+    public String getFormattedDueDate() {
+        if (dueDate == null) return "Not set";
+        return new java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault())
+            .format(dueDate);
+    }
+    
+    public String getFormattedReturnDate() {
+        if (returnDate == null) return "Not returned";
+        return new java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault())
+            .format(returnDate);
+    }
 
     @Override
     public String toString() {
-        return "Borrowing{" +
-                "borrowingId=" + borrowingId +
-                ", userId=" + userId +
-                ", resourceId=" + resourceId +
-                ", borrowDate=" + borrowDate +
-                ", dueDate=" + dueDate +
-                ", status='" + status + '\'' +
-                ", resourceTitle='" + (resource != null ? resource.getTitle() : "N/A") + '\'' +
-                '}';
+        StringBuilder sb = new StringBuilder("Borrowing{");
+        sb.append("borrowingId=").append(borrowingId);
+        sb.append(", userId=").append(userId);
+        sb.append(", resourceId=").append(resourceId);
+        sb.append(", status='").append(status).append('\'');
+        
+        // Add resource information if available
+        if (resource != null) {
+            sb.append(", resourceTitle='").append(resource.getTitle()).append('\'');
+            sb.append(", resourceCategory='").append(resource.getCategory()).append('\'');
+            if (resource.getAccessionNumber() != null) {
+                sb.append(", accession='").append(resource.getAccessionNumber()).append('\'');
+            }
+        }
+        
+        // Add important dates
+        if (borrowDate != null) {
+            sb.append(", borrowDate=").append(getFormattedBorrowDate());
+        }
+        if (dueDate != null) {
+            sb.append(", dueDate=").append(getFormattedDueDate());
+        }
+        if (returnDate != null) {
+            sb.append(", returnDate=").append(getFormattedReturnDate());
+        }
+        
+        // Add fine information if applicable
+        if (fineAmount != null && fineAmount.compareTo(java.math.BigDecimal.ZERO) > 0) {
+            sb.append(", fineAmount=").append(fineAmount);
+        }
+        
+        sb.append('}');
+        return sb.toString();
     }
 } 

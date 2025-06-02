@@ -125,55 +125,183 @@ public class BorrowingActivity extends AppCompatActivity {
     private void displayResourceDetails() {
         if (resource == null) return;
         
+        android.util.Log.d("BorrowingActivity", "Displaying details for resource: " + resource.toString());
+        
         // Set basic resource information
         resourceTitle.setText(resource.getTitle());
-        resourceCategory.setText(getCategoryDisplayName(resource.getCategory()));
-        resourceStatus.setText(resource.getStatus() != null ? resource.getStatus() : "Unknown");
-        resourceAccession.setText("Accession: " + (resource.getAccessionNumber() != null ? resource.getAccessionNumber() : "N/A"));
+        resourceCategory.setText("📚 " + getCategoryDisplayName(resource.getCategory()));
         
-        // Load cover image
+        // Format status with proper styling
+        String status = resource.getStatus() != null ? resource.getStatus() : "Unknown";
+        resourceStatus.setText("Status: " + status.toUpperCase());
+        
+        // Show accession number
+        resourceAccession.setText("📋 Accession: " + (resource.getAccessionNumber() != null ? resource.getAccessionNumber() : "N/A"));
+        
+        // Load cover image with better error handling
+        loadCoverImage();
+        
+        // Build comprehensive resource details
+        String detailsText = buildDetailedResourceInfo();
+        resourceDetails.setText(detailsText);
+        
+        android.util.Log.d("BorrowingActivity", "Resource details displayed successfully");
+    }
+    
+    private void loadCoverImage() {
         if (resource.getCoverImage() != null && !resource.getCoverImage().isEmpty()) {
+            android.util.Log.d("BorrowingActivity", "Loading cover image: " + resource.getCoverImage());
             Glide.with(this)
                 .load(resource.getCoverImage())
                 .placeholder(R.drawable.ic_no_photo)
                 .error(R.drawable.ic_no_photo)
+                .centerCrop()
                 .into(resourceCoverImage);
         } else {
+            android.util.Log.d("BorrowingActivity", "No cover image available, using placeholder");
             resourceCoverImage.setImageResource(R.drawable.ic_no_photo);
         }
-        
-        // Set category-specific details
+    }
+    
+    private String buildDetailedResourceInfo() {
         StringBuilder details = new StringBuilder();
         String category = resource.getCategory();
         
-        if ("book".equals(category) && resource.getBookDetails() != null) {
-            BookDetails book = resource.getBookDetails();
-            details.append("📚 Book Details:\n");
-            if (book.getAuthor() != null) details.append("• Author: ").append(book.getAuthor()).append("\n");
-            if (book.getPublisher() != null) details.append("• Publisher: ").append(book.getPublisher()).append("\n");
-            if (book.getEdition() != null) details.append("• Edition: ").append(book.getEdition()).append("\n");
-            if (book.getIsbn() != null) details.append("• ISBN: ").append(book.getIsbn()).append("\n");
-            
-        } else if ("periodical".equals(category) && resource.getPeriodicalDetails() != null) {
-            PeriodicalDetails periodical = resource.getPeriodicalDetails();
-            details.append("📰 Periodical Details:\n");
-            if (periodical.getVolume() != null) details.append("• Volume: ").append(periodical.getVolume()).append("\n");
-            if (periodical.getIssue() != null) details.append("• Issue: ").append(periodical.getIssue()).append("\n");
-            if (periodical.getIssn() != null) details.append("• ISSN: ").append(periodical.getIssn()).append("\n");
-            
-        } else if ("media".equals(category) && resource.getMediaDetails() != null) {
-            MediaDetails media = resource.getMediaDetails();
-            details.append("🎬 Media Details:\n");
-            if (media.getFormat() != null) details.append("• Format: ").append(media.getFormat()).append("\n");
-            if (media.getMediaType() != null) details.append("• Type: ").append(media.getMediaType()).append("\n");
-            if (media.getRuntime() != null && media.getRuntime() > 0) {
-                details.append("• Runtime: ").append(media.getRuntime()).append(" minutes\n");
-            }
-        } else {
-            details.append("Loading details...\n");
+        android.util.Log.d("BorrowingActivity", "Building details for category: " + category);
+        
+        // Add general information first
+        if (resource.getCreatedAt() != null) {
+            details.append("📅 Added to Library: ")
+                   .append(new java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault())
+                   .format(resource.getCreatedAt())).append("\n\n");
         }
         
-        resourceDetails.setText(details.toString());
+        // Category-specific detailed information
+        if ("book".equals(category)) {
+            buildBookDetails(details);
+        } else if ("periodical".equals(category)) {
+            buildPeriodicalDetails(details);
+        } else if ("media".equals(category)) {
+            buildMediaDetails(details);
+        } else {
+            details.append("ℹ️ Basic Resource Information:\n");
+            details.append("Category: ").append(getCategoryDisplayName(category)).append("\n");
+            android.util.Log.w("BorrowingActivity", "Unknown or unsupported category: " + category);
+        }
+        
+        // Add borrowing information
+        details.append("\n📋 Borrowing Information:\n");
+        details.append("• This resource can be borrowed for up to 7 days\n");
+        details.append("• Late returns may incur fines\n");
+        details.append("• Resources must be returned in good condition\n");
+        
+        return details.toString();
+    }
+    
+    private void buildBookDetails(StringBuilder details) {
+        BookDetails book = resource.getBookDetails();
+        details.append("📚 Book Information:\n");
+        
+        if (book != null) {
+            android.util.Log.d("BorrowingActivity", "Displaying book details from database");
+            
+            if (book.getAuthor() != null && !book.getAuthor().isEmpty()) {
+                details.append("👤 Author: ").append(book.getAuthor()).append("\n");
+            }
+            
+            if (book.getPublisher() != null && !book.getPublisher().isEmpty()) {
+                details.append("🏢 Publisher: ").append(book.getPublisher()).append("\n");
+            }
+            
+            if (book.getEdition() != null && !book.getEdition().isEmpty()) {
+                details.append("📖 Edition: ").append(book.getEdition()).append("\n");
+            }
+            
+            if (book.getIsbn() != null && !book.getIsbn().isEmpty()) {
+                details.append("🔢 ISBN: ").append(book.getIsbn()).append("\n");
+            }
+            
+            if (book.getPublicationDate() != null) {
+                details.append("📅 Publication Date: ")
+                       .append(new java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault())
+                       .format(book.getPublicationDate())).append("\n");
+            }
+            
+            if (book.getType() != null && !book.getType().isEmpty()) {
+                details.append("📂 Type: ").append(book.getType()).append("\n");
+            }
+        } else {
+            details.append("⏳ Loading detailed book information from database...\n");
+            android.util.Log.w("BorrowingActivity", "Book details not loaded from database");
+        }
+    }
+    
+    private void buildPeriodicalDetails(StringBuilder details) {
+        PeriodicalDetails periodical = resource.getPeriodicalDetails();
+        details.append("📰 Periodical Information:\n");
+        
+        if (periodical != null) {
+            android.util.Log.d("BorrowingActivity", "Displaying periodical details from database");
+            
+            if (periodical.getVolume() != null && !periodical.getVolume().isEmpty()) {
+                details.append("📊 Volume: ").append(periodical.getVolume()).append("\n");
+            }
+            
+            if (periodical.getIssue() != null && !periodical.getIssue().isEmpty()) {
+                details.append("📄 Issue: ").append(periodical.getIssue()).append("\n");
+            }
+            
+            if (periodical.getIssn() != null && !periodical.getIssn().isEmpty()) {
+                details.append("🔢 ISSN: ").append(periodical.getIssn()).append("\n");
+            }
+            
+            if (periodical.getPublicationDate() != null) {
+                details.append("📅 Publication Date: ")
+                       .append(new java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault())
+                       .format(periodical.getPublicationDate())).append("\n");
+            }
+            
+            if (periodical.getType() != null && !periodical.getType().isEmpty()) {
+                details.append("📂 Type: ").append(periodical.getType()).append("\n");
+            }
+        } else {
+            details.append("⏳ Loading detailed periodical information from database...\n");
+            android.util.Log.w("BorrowingActivity", "Periodical details not loaded from database");
+        }
+    }
+    
+    private void buildMediaDetails(StringBuilder details) {
+        MediaDetails media = resource.getMediaDetails();
+        details.append("🎬 Media Information:\n");
+        
+        if (media != null) {
+            android.util.Log.d("BorrowingActivity", "Displaying media details from database");
+            
+            if (media.getFormat() != null && !media.getFormat().isEmpty()) {
+                details.append("💿 Format: ").append(media.getFormat()).append("\n");
+            }
+            
+            if (media.getMediaType() != null && !media.getMediaType().isEmpty()) {
+                details.append("🎭 Type: ").append(media.getMediaType()).append("\n");
+            }
+            
+            if (media.getRuntime() != null && media.getRuntime() > 0) {
+                int hours = media.getRuntime() / 60;
+                int minutes = media.getRuntime() % 60;
+                if (hours > 0) {
+                    details.append("⏱️ Runtime: ").append(hours).append("h ").append(minutes).append("m\n");
+                } else {
+                    details.append("⏱️ Runtime: ").append(minutes).append(" minutes\n");
+                }
+            }
+            
+            if (media.getType() != null && !media.getType().isEmpty()) {
+                details.append("📂 Type: ").append(media.getType()).append("\n");
+            }
+        } else {
+            details.append("⏳ Loading detailed media information from database...\n");
+            android.util.Log.w("BorrowingActivity", "Media details not loaded from database");
+        }
     }
     
     private void validateBorrowingEligibility() {
@@ -301,17 +429,81 @@ public class BorrowingActivity extends AppCompatActivity {
                 .format(borrowing.getDueDate());
         }
         
-        String message = "Your borrowing request has been submitted successfully!\n\n" +
-                        "📖 Resource: " + resource.getTitle() + "\n" +
-                        "🆔 Request ID: " + borrowing.getBorrowingId() + "\n" +
-                        "📅 Due Date: " + dueDateStr + "\n" +
-                        "👤 Status: " + borrowing.getStatus().toUpperCase() + "\n\n" +
-                        "You will be notified when your request is approved by the librarian.";
+        // Build comprehensive success message
+        StringBuilder message = new StringBuilder();
+        message.append("✅ Your borrowing request has been submitted successfully!\n\n");
+        
+        // Resource information
+        message.append("📚 RESOURCE DETAILS:\n");
+        message.append("• Title: ").append(resource.getTitle()).append("\n");
+        message.append("• Category: ").append(getCategoryDisplayName(resource.getCategory())).append("\n");
+        if (resource.getAccessionNumber() != null) {
+            message.append("• Accession: ").append(resource.getAccessionNumber()).append("\n");
+        }
+        
+        // Add category-specific details in summary
+        String category = resource.getCategory();
+        if ("book".equals(category) && resource.getBookDetails() != null) {
+            BookDetails book = resource.getBookDetails();
+            if (book.getAuthor() != null) {
+                message.append("• Author: ").append(book.getAuthor()).append("\n");
+            }
+            if (book.getIsbn() != null) {
+                message.append("• ISBN: ").append(book.getIsbn()).append("\n");
+            }
+        } else if ("periodical".equals(category) && resource.getPeriodicalDetails() != null) {
+            PeriodicalDetails periodical = resource.getPeriodicalDetails();
+            if (periodical.getVolume() != null && periodical.getIssue() != null) {
+                message.append("• Volume/Issue: ").append(periodical.getVolume()).append("/").append(periodical.getIssue()).append("\n");
+            }
+            if (periodical.getIssn() != null) {
+                message.append("• ISSN: ").append(periodical.getIssn()).append("\n");
+            }
+        } else if ("media".equals(category) && resource.getMediaDetails() != null) {
+            MediaDetails media = resource.getMediaDetails();
+            if (media.getFormat() != null) {
+                message.append("• Format: ").append(media.getFormat()).append("\n");
+            }
+            if (media.getRuntime() != null && media.getRuntime() > 0) {
+                message.append("• Runtime: ").append(media.getRuntime()).append(" min\n");
+            }
+        }
+        
+        message.append("\n🆔 REQUEST INFORMATION:\n");
+        message.append("• Request ID: #").append(borrowing.getBorrowingId()).append("\n");
+        message.append("• Status: ").append(borrowing.getStatus().toUpperCase()).append("\n");
+        message.append("• Due Date: ").append(dueDateStr).append("\n");
+        
+        // Format request date
+        if (borrowing.getBorrowDate() != null) {
+            String requestDateStr = new java.text.SimpleDateFormat("MMM dd, yyyy 'at' HH:mm", java.util.Locale.getDefault())
+                .format(borrowing.getBorrowDate());
+            message.append("• Requested: ").append(requestDateStr).append("\n");
+        }
+        
+        message.append("\n📋 NEXT STEPS:\n");
+        message.append("• Your request is now PENDING librarian approval\n");
+        message.append("• You will be notified when approved\n");
+        message.append("• Check your borrowing history for updates\n");
+        message.append("• Return the resource by the due date to avoid fines\n");
+        
+        message.append("\n💡 BORROWING TERMS:\n");
+        message.append("• Standard loan period: 7 days\n");
+        message.append("• Late fee: ₱5.00 per day overdue\n");
+        message.append("• Resource must be returned in good condition\n");
         
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("✅ Request Submitted Successfully")
-               .setMessage(message)
-               .setPositiveButton("OK", (dialog, which) -> {
+        builder.setTitle("🎉 Request Submitted Successfully")
+               .setMessage(message.toString())
+               .setPositiveButton("View My Requests", (dialog, which) -> {
+                   // Navigate to borrowing history
+                   Intent intent = new Intent(this, BorrowingHistoryActivity.class);
+                   intent.putExtra("USER_ID", userId);
+                   intent.putExtra("USER_NAME", userName);
+                   startActivity(intent);
+                   finish();
+               })
+               .setNeutralButton("Back to Catalog", (dialog, which) -> {
                    // Return to dashboard
                    Intent intent = new Intent(this, LibraryDashboardActivity.class);
                    intent.putExtra("USER_ID", userId);
@@ -322,6 +514,16 @@ public class BorrowingActivity extends AppCompatActivity {
                })
                .setCancelable(false)
                .show();
+               
+        // Log the successful request with detailed information
+        android.util.Log.d("BorrowingActivity", 
+            "Borrowing request created successfully - " +
+            "Request ID: " + borrowing.getBorrowingId() + 
+            ", User: " + userId + " (" + userName + ")" +
+            ", Resource: " + resource.getResourceId() + " (" + resource.getTitle() + ")" +
+            ", Category: " + resource.getCategory() +
+            ", Status: " + borrowing.getStatus() +
+            ", Due Date: " + dueDateStr);
     }
     
     private void showLoadingState(boolean loading) {
